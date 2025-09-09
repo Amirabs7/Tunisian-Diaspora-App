@@ -1,4 +1,4 @@
 streamlit
 pandas
-plotly-express
+plotly
 2. Push Your Project to GitHub
