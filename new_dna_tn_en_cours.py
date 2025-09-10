@@ -3,7 +3,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from pyngrok import ngrok
+from pyngrok import ngrok, conf
 
 # Set a title for the Streamlit app
 st.set_page_config(layout="wide")
@@ -133,17 +133,22 @@ st.dataframe(filtered_df.sort_values(by='diaspora_population', ascending=False).
 # ngrok Tunnel
 # -----------------
 
-# Get the ngrok token from secrets.toml
-ngrok_token = st.secrets["NGROK_TOKEN"]
+try:
+    # Get the ngrok token from secrets.toml
+    ngrok_token = st.secrets["NGROK_TOKEN"]
 
-# Authenticate with ngrok using the token from your secrets
-ngrok.set_auth_token(ngrok_token)
+    # Set the auth token using the configuration object
+    conf.get_default().auth_token = ngrok_token
 
-# Kill any ngrok tunnels already running
-ngrok.kill()
+    # Kill any ngrok tunnels already running
+    ngrok.kill()
+    
+    # Start a streamlit tunnel on port 8501
+    public_url = ngrok.connect(addr="8501")
 
-# Start a streamlit tunnel on port 8501
-public_url = ngrok.connect(addr="8501")
+    # Print the URL for the user
+    print(f"URL: {public_url}")
 
-# Print the URL for the user
-print(f"URL: {public_url}")
+except Exception as e:
+    st.error(f"An error occurred while connecting to ngrok. Please check your token and internet connection.")
+    st.error(f"Full error details: {e}")
