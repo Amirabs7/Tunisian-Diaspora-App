@@ -130,25 +130,29 @@ st.subheader("Data Table")
 st.dataframe(filtered_df.sort_values(by='diaspora_population', ascending=False).reset_index(drop=True))
 
 # -----------------
-# ngrok Tunnel
+# ngrok Tunnel (using session state to run only once)
 # -----------------
+if "public_url" not in st.session_state:
+    try:
+        # Get the ngrok token from secrets.toml
+        ngrok_token = st.secrets["NGROK_TOKEN"]
 
-try:
-    # Get the ngrok token from secrets.toml
-    ngrok_token = st.secrets["NGROK_TOKEN"]
+        # Set the auth token using the configuration object
+        conf.get_default().auth_token = ngrok_token
 
-    # Set the auth token using the configuration object
-    conf.get_default().auth_token = ngrok_token
+        # Kill any ngrok tunnels already running
+        ngrok.kill()
+        
+        # Start a streamlit tunnel on port 8501
+        public_url = ngrok.connect(addr="8501")
+        
+        # Store the URL in session state so it is not created again
+        st.session_state.public_url = public_url
 
-    # Kill any ngrok tunnels already running
-    ngrok.kill()
-    
-    # Start a streamlit tunnel on port 8501
-    public_url = ngrok.connect(addr="8501")
+    except Exception as e:
+        st.error(f"An error occurred while connecting to ngrok. Please check your token and internet connection.")
+        st.error(f"Full error details: {e}")
 
-    # Print the URL for the user
-    print(f"URL: {public_url}")
-
-except Exception as e:
-    st.error(f"An error occurred while connecting to ngrok. Please check your token and internet connection.")
-    st.error(f"Full error details: {e}")
+# If a public URL was successfully created, display it
+if "public_url" in st.session_state:
+    print(f"URL: {st.session_state.public_url}")
