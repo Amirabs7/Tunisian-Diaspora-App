@@ -154,4 +154,3 @@ public_url = ngrok.connect(addr="8501")
 print(f"URL: {public_url}")
 
 # Run the streamlit app
-!streamlit run app.py
